@@ -214,7 +214,7 @@ public class IDFBuildConfiguration extends CBuildConfiguration {
 				}
 			}
 
-			boolean runCMake = cmakeListsModified;
+			boolean runCMake = cmakeListsModified || infoPerResource == null;
 			if (!runCMake) {
 				switch (generator) {
 				case "Ninja": //$NON-NLS-1$
