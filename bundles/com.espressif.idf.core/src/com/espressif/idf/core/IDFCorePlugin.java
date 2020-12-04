@@ -4,7 +4,9 @@
  *******************************************************************************/
 package com.espressif.idf.core;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.core.runtime.Status;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -49,5 +51,9 @@ public class IDFCorePlugin extends Plugin
 		return ref != null ? context.getService(ref) : null;
 	}
 
-	
+	public static IStatus errorStatus(String message, Throwable cause)
+	{
+		return new Status(IStatus.ERROR, getId(), message, cause);
+	}
+
 }

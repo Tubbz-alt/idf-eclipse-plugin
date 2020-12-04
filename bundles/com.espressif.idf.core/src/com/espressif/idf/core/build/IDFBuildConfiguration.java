@@ -11,7 +11,6 @@
 package com.espressif.idf.core.build;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -29,11 +28,9 @@ import java.util.function.Consumer;
 
 import org.eclipse.cdt.cmake.core.ICMakeToolChainFile;
 import org.eclipse.cdt.cmake.core.ICMakeToolChainManager;
-import org.eclipse.cdt.cmake.core.internal.Activator;
 import org.eclipse.cdt.cmake.core.internal.CMakeUtils;
 import org.eclipse.cdt.cmake.is.core.CompileCommandsJsonParser;
 import org.eclipse.cdt.cmake.is.core.IIndexerInfoConsumer;
-import org.eclipse.cdt.cmake.is.core.Messages;
 import org.eclipse.cdt.cmake.is.core.ParseRequest;
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.CommandLauncherManager;
@@ -51,7 +48,6 @@ import org.eclipse.cdt.core.model.ICElementDelta;
 import org.eclipse.cdt.core.model.ICModelMarker;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.core.parser.ExtendedScannerInfo;
-import org.eclipse.cdt.core.parser.IExtendedScannerInfo;
 import org.eclipse.cdt.core.parser.IScannerInfo;
 import org.eclipse.cdt.core.resources.IConsole;
 import org.eclipse.core.resources.IBuildConfiguration;
@@ -66,17 +62,18 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.ILaunchMode;
 import org.eclipse.launchbar.core.ILaunchBarManager;
 import org.eclipse.launchbar.core.target.ILaunchTarget;
 
 import com.espressif.idf.core.IDFConstants;
+import com.espressif.idf.core.IDFCorePlugin;
 import com.espressif.idf.core.internal.CMakeConsoleWrapper;
 import com.espressif.idf.core.internal.CMakeErrorParser;
-import com.google.gson.Gson;
+import com.espressif.idf.core.logging.Logger;
 
+@SuppressWarnings(value = {"restriction"})
 public class IDFBuildConfiguration extends CBuildConfiguration {
 
 	public static final String CMAKE_GENERATOR = "cmake.generator"; //$NON-NLS-1$
@@ -102,7 +99,7 @@ public class IDFBuildConfiguration extends CBuildConfiguration {
 	public IDFBuildConfiguration(IBuildConfiguration config, String name) throws CoreException {
 		super(config, name);
 
-		ICMakeToolChainManager manager = Activator.getService(ICMakeToolChainManager.class);
+		ICMakeToolChainManager manager = IDFCorePlugin.getService(ICMakeToolChainManager.class);
 		this.toolChainFile = manager.getToolChainFileFor(getToolChain());
 		this.name= name;
 	}
@@ -162,7 +159,7 @@ public class IDFBuildConfiguration extends CBuildConfiguration {
 		try
 		{
 			// Get launch target
-			ILaunchBarManager launchBarManager = Activator.getService(ILaunchBarManager.class);
+			ILaunchBarManager launchBarManager = IDFCorePlugin.getService(ILaunchBarManager.class);
 			launchtarget = launchBarManager.getActiveLaunchTarget();
 			ILaunchMode activeLaunchMode = launchBarManager.getActiveLaunchMode();
 
@@ -204,7 +201,7 @@ public class IDFBuildConfiguration extends CBuildConfiguration {
 
 			// Make sure we have a toolchain file if cross
 			if (toolChainFile == null && !isLocal()) {
-				ICMakeToolChainManager manager = Activator.getService(ICMakeToolChainManager.class);
+				ICMakeToolChainManager manager = IDFCorePlugin.getService(ICMakeToolChainManager.class);
 				toolChainFile = manager.getToolChainFileFor(getToolChain());
 
 				if (toolChainFile == null) {
@@ -214,7 +211,7 @@ public class IDFBuildConfiguration extends CBuildConfiguration {
 				}
 			}
 
-			boolean runCMake = cmakeListsModified || infoPerResource == null;
+			boolean runCMake = cmakeListsModified;
 			if (!runCMake) {
 				switch (generator) {
 				case "Ninja": //$NON-NLS-1$
@@ -341,7 +338,7 @@ public class IDFBuildConfiguration extends CBuildConfiguration {
 			update(project);
 			return new IProject[] { project };
 		} catch (IOException e) {
-			throw new CoreException(Activator
+			throw new CoreException(IDFCorePlugin
 					.errorStatus(String.format(org.eclipse.cdt.cmake.core.internal.Messages.CMakeBuildConfiguration_Building, project.getName()), e));
 		}
 	}
@@ -419,7 +416,7 @@ public class IDFBuildConfiguration extends CBuildConfiguration {
 
 			project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 		} catch (IOException e) {
-			throw new CoreException(Activator
+			throw new CoreException(IDFCorePlugin
 					.errorStatus(String.format(org.eclipse.cdt.cmake.core.internal.Messages.CMakeBuildConfiguration_Cleaning, project.getName()), e));
 		}
 	}
@@ -483,7 +480,7 @@ public class IDFBuildConfiguration extends CBuildConfiguration {
 			try {
 				processCompileCommandsFile(null, new NullProgressMonitor());
 			} catch (CoreException e) {
-				Activator.log(e);
+				Logger.log(e);
 			}
 		}
 		return infoPerResource == null ? null : infoPerResource.get(resource);
