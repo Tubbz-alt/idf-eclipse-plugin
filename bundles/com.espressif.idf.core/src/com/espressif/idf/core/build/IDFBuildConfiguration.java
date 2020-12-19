@@ -340,7 +340,7 @@ public class IDFBuildConfiguration extends CBuildConfiguration {
 				Instant finish = Instant.now();
 				long timeElapsed = Duration.between(start, finish).toMillis();
 				
-				outStream.write(MessageFormat.format("Total time taken to build the project: {0} ms", timeElapsed)); //$NON-NLS-1$
+				infoStream.write(MessageFormat.format("Total time taken to build the project: {0} ms", timeElapsed)); //$NON-NLS-1$
 				
 			}
 
